@@ -28,7 +28,33 @@ public class VariableElimination {
             factors.add(new Factor(relevant_elements, element, evidence));
         }
         removeEmptyFactors(factors);
-    
+
+        List<BayesianNetworkElement> independentVariables = new ArrayList<>();
+        for(BayesianNetworkElement element : relevant_elements)
+            if (queryVariableElement != null && !element.equals(queryVariableElement) &&
+                    BayesBall.isIndependent(element, queryVariableElement, evidenceNames, network))
+                independentVariables.add(element);
+
+        // Create a list to hold the factors to remove
+        List<Factor> factorsToRemove = new ArrayList<>();
+
+        // Iterate through each factor
+        for (Factor factor : factors) {
+            // Iterate through each variable in the current factor
+            for (BayesianNetworkElement variable : factor.factor_variables) {
+                // Check if the current variable is in the independentVariables list
+                if (independentVariables.contains(variable)) {
+                    // If found, mark this factor for removal and break out of the inner loop
+                    factorsToRemove.add(factor);
+                    break;
+                }
+            }
+        }
+
+        // Remove factors marked for removal
+        factors.removeAll(factorsToRemove);
+
+
         evidence.add(request_left);
     
         List<BayesianNetworkElement> free_variables = BayesianNetworkTools.getUnusedElements(relevant_elements, evidence);
