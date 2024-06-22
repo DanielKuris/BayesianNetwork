@@ -48,7 +48,7 @@ public class BayesBall {
             markEvidences(evidenceNames, network);
         }
 
-        BayesianNetworkElement result = INDsearch(source, destination, network);
+        BayesianNetworkElement result = canReach(source, destination, network);
 
         // Reset the network state
         resetVars(network);
@@ -58,7 +58,7 @@ public class BayesBall {
         return !result.name.equals(destination.name);
     }
 
-    private static BayesianNetworkElement INDsearch(BayesianNetworkElement source, BayesianNetworkElement target, List<BayesianNetworkElement> network) {
+    private static BayesianNetworkElement canReach(BayesianNetworkElement source, BayesianNetworkElement target, List<BayesianNetworkElement> network) {
         Queue<BayesianNetworkElement> toVisit = new LinkedList<>();
         source.visit = BayesianNetworkElement.VISIT_FROM_CHILD;
         toVisit.add(source);
