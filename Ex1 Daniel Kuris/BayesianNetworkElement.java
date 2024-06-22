@@ -9,6 +9,7 @@ public class BayesianNetworkElement {
     public String name;
     public List<String> outcomes;
     public List<BayesianNetworkElement> given;
+    public List<BayesianNetworkElement> children;
     public double[] table;
 
     // Visit and color fields for the Bayes Ball algorithm
@@ -26,6 +27,7 @@ public class BayesianNetworkElement {
         this.name = name;
         this.outcomes = outcomes;
         this.given = null;
+        this.children = null;
         this.table = null;
         this.visit = UNVISITED;
         this.color = UNCOLORED;
@@ -77,16 +79,23 @@ public class BayesianNetworkElement {
         return this.table[offset];
     }
 
-    public boolean hasParent(List<BayesianNetworkElement> network) {
-        for (BayesianNetworkElement element : network) {
-            if (element.given != null && element.given.contains(this)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean hasChild() {
+    public boolean hasParent() {
+        // Checks if the element has any parents
         return this.given != null && !this.given.isEmpty();
     }
+
+    public void updateChildren(List<BayesianNetworkElement> network) {
+        this.children = new ArrayList<>();
+        // Checks if the element is a parent to any other elements in the network
+        for (BayesianNetworkElement element : network) {
+            if (element.given != null && element.given.contains(this)) {
+                this.children.add(element);
+            }
+        }
+    }
+
+    public boolean hasChild(){
+        return this.children != null && !this.children.isEmpty();
+    }
+
 }

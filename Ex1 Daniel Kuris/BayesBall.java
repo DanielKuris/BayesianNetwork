@@ -29,22 +29,33 @@ public class BayesBall {
             return false;
         }
 
+
+        // Determine independence using parsed evidence names
+        boolean independent = isIndependent(var1, var2, evidenceNames, network);
+
+
+
+
+        return independent;
+    }
+
+    public static boolean isIndependent(BayesianNetworkElement source, BayesianNetworkElement destination,List<String> evidenceNames, List<BayesianNetworkElement> network) {
+        if(source.name.equals(destination.name))
+            return false;
+
         // Mark evidence nodes if there are any
         if (!evidenceNames.isEmpty()) {
             markEvidences(evidenceNames, network);
         }
 
-        // Determine independence using parsed evidence names
-        boolean independent = isIndependent(var1, var2, network);
+        BayesianNetworkElement result = INDsearch(source, destination, network);
 
         // Reset the network state
         resetVars(network);
 
-        return independent;
-    }
-
-    private static boolean isIndependent(BayesianNetworkElement source, BayesianNetworkElement destination, List<BayesianNetworkElement> network) {
-        return INDsearch(source, destination, network) != destination;
+        if(result == null)
+            return true;
+        return !result.name.equals(destination.name);
     }
 
     private static BayesianNetworkElement INDsearch(BayesianNetworkElement source, BayesianNetworkElement target, List<BayesianNetworkElement> network) {
@@ -54,6 +65,7 @@ public class BayesBall {
 
         while (!toVisit.isEmpty()) {
             BayesianNetworkElement curr = toVisit.remove();
+            curr.updateChildren(network);
 
             if (curr.equals(target)) {
                 return target;
@@ -61,15 +73,15 @@ public class BayesBall {
 
             if (curr.color == BayesianNetworkElement.UNCOLORED && curr.visit == BayesianNetworkElement.VISIT_FROM_CHILD) {
                 if (curr.hasChild()) {
-                    for (BayesianNetworkElement child : curr.given) {
+                    for (BayesianNetworkElement child : curr.children) {
                         if (child.visit == BayesianNetworkElement.UNVISITED) {
                             child.visit = BayesianNetworkElement.VISIT_FROM_PARENT;
                             toVisit.add(child);
                         }
                     }
                 }
-                if (curr.hasParent(network)) {
-                    for (BayesianNetworkElement parent : getParents(curr, network)) {
+                if (curr.hasParent()) {
+                    for (BayesianNetworkElement parent : curr.given) {
                         if (parent.visit == BayesianNetworkElement.UNVISITED) {
                             parent.visit = BayesianNetworkElement.VISIT_FROM_CHILD;
                             toVisit.add(parent);
@@ -78,7 +90,7 @@ public class BayesBall {
                 }
             } else if (curr.color == BayesianNetworkElement.UNCOLORED && curr.visit == BayesianNetworkElement.VISIT_FROM_PARENT) {
                 if (curr.hasChild()) {
-                    for (BayesianNetworkElement child : curr.given) {
+                    for (BayesianNetworkElement child : curr.children) {
                         if (child.visit != BayesianNetworkElement.VISIT_FROM_PARENT) {
                             child.visit = BayesianNetworkElement.VISIT_FROM_PARENT;
                             toVisit.add(child);
@@ -86,8 +98,8 @@ public class BayesBall {
                     }
                 }
             } else if (curr.color == BayesianNetworkElement.COLORED && curr.visit == BayesianNetworkElement.VISIT_FROM_PARENT) {
-                if (curr.hasParent(network)) {
-                    for (BayesianNetworkElement parent : getParents(curr, network)) {
+                if (curr.hasParent()) {
+                    for (BayesianNetworkElement parent : curr.given) {
                         if (parent.visit != BayesianNetworkElement.VISIT_FROM_CHILD) {
                             parent.visit = BayesianNetworkElement.VISIT_FROM_CHILD;
                             toVisit.add(parent);
@@ -117,15 +129,6 @@ public class BayesBall {
         }
     }
 
-    private static List<BayesianNetworkElement> getParents(BayesianNetworkElement node, List<BayesianNetworkElement> network) {
-        List<BayesianNetworkElement> parents = new ArrayList<>();
-        for (BayesianNetworkElement element : network) {
-            if (element.given != null && element.given.contains(node)) {
-                parents.add(element);
-            }
-        }
-        return parents;
-    }
 
     private static BayesianNetworkElement searchElementByName(List<BayesianNetworkElement> network, String name) {
         for (BayesianNetworkElement element : network) {

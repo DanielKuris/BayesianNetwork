@@ -8,7 +8,21 @@ public class VariableElimination {
     
         // Call the updated keepRelevantElements
         List<BayesianNetworkElement> relevant_elements = keepRelevantElements(network, usedVariables);
-    
+
+
+        String[] parts = request_left.split("=");
+        String queryVariable = parts[0].trim();
+        BayesianNetworkElement queryVariableElement = BayesianNetworkTools.searchElementByName(network, queryVariable);
+
+        List<String> evidenceNames = new ArrayList<>();
+        for (String variable: evidence) {
+            String evidenceName = variable.split("=")[0].trim();
+            evidenceNames.add(evidenceName);
+        }
+
+
+
+        // Filter relevant elements based on independence with query variable
         List<Factor> factors = new ArrayList<>();
         for (BayesianNetworkElement element: relevant_elements) {
             factors.add(new Factor(relevant_elements, element, evidence));
@@ -56,7 +70,7 @@ public class VariableElimination {
     
         return numerator/denominator;
     }
-      
+
 
     private static void eliminateVariable(List<BayesianNetworkElement> network, List<Factor> factors, String free_variable, MathematicalOperationsCounter counter) {
         Factor relevant_factor = filterFactorsByValue(factors, free_variable, true).get(0);
